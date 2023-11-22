@@ -21,6 +21,7 @@ update = 0
 
 historical_values_temp = []
 historical_values_hum = []
+array_without_first = []
 x_values = []
 x_counter = 0
 
@@ -110,18 +111,21 @@ def update_real_time_graph(_):
     historical_values_hum.append(present_hum_graph)
 
     highest_temp = max(historical_values_temp)
-    lowest_temp = min(historical_values_temp)
+
+    lowest_temp = min(historical_values_temp[1:], default=1000)
 
     print (lowest_temp)
 
-    
+    historical_values_temp_from1 = historical_values_temp[1:]
 
     x_values.append(x_counter)
     x_counter += 1
 
+    x_values_from1 = x_values[1:]
+
     data = {
-        'x': x_values,
-        'present-temp': historical_values_temp,
+        'x': x_values_from1,
+        'present-temp': historical_values_temp_from1,
         #'present-hum': historical_values_hum,
     }
 
