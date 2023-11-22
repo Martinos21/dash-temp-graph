@@ -14,8 +14,8 @@ present_temp_graph = 0
 presenttemp = []
 presenthum = []
 
-highest_temp = 0
-lowest_temp = 0
+highest_temp = None
+lowest_temp = None
 
 update = 0
 
@@ -80,12 +80,12 @@ lowest_temp_card = dbc.Card(
     
 )
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*10, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*30, n_intervals=0),
             html.H1("Klimakomora", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -105,12 +105,16 @@ app.layout = dbc.Container(
 def update_real_time_graph(_):
     
     global historical_values_temp, historical_values_hum, x_values, x_counter, highest_temp, lowest_temp
-    
+
     historical_values_temp.append(present_temp_graph)
     historical_values_hum.append(present_hum_graph)
 
     highest_temp = max(historical_values_temp)
     lowest_temp = min(historical_values_temp)
+
+    print (lowest_temp)
+
+    
 
     x_values.append(x_counter)
     x_counter += 1
@@ -118,7 +122,7 @@ def update_real_time_graph(_):
     data = {
         'x': x_values,
         'present-temp': historical_values_temp,
-        'present-hum': historical_values_hum,
+        #'present-hum': historical_values_hum,
     }
 
     df = pd.DataFrame.from_dict(data)
