@@ -114,7 +114,7 @@ def update_real_time_graph(_):
 
     lowest_temp = min(historical_values_temp[1:], default=1000)
 
-    print (lowest_temp)
+    #print (lowest_temp)
 
     historical_values_temp_from1 = historical_values_temp[1:]
 
