@@ -32,7 +32,7 @@ mqttc.connect("broker.hivemq.com", 1883, 60)
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
-    mqttc.subscribe("home-temp-val")
+    mqttc.subscribe("home-outdoortemp-analysis")
 
 
 def on_message(client, userdata, msg):
@@ -42,7 +42,7 @@ def on_message(client, userdata, msg):
 
     msg.payload = msg.payload.decode("utf-8")
 
-    if msg.topic == "home-temp-val":
+    if msg.topic == "home-outdoortemp-analysis":
         present_temp = msg.payload
         present_temp_graph = float(present_temp)
 
@@ -87,7 +87,7 @@ app.layout = dbc.Container(
     html.Div(
         children=[
             dcc.Interval(id='update', interval=1000*30, n_intervals=0),
-            html.H1("Klimakomora", style={'text-align':'center'}),
+            html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
             html.Hr(),
