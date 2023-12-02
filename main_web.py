@@ -27,7 +27,7 @@ x_counter = 0
 
 #####################################################################
 mqttc = mqtt.Client()
-mqttc.connect("192.168.88.105", 1883, 60)
+mqttc.connect("192.168.88.105", 1884, 60)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
