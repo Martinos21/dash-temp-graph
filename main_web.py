@@ -86,7 +86,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*60, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*6000, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -110,7 +110,7 @@ def update_real_time_graph(_):
     historical_values_temp.append(present_temp_graph)
     historical_values_hum.append(present_hum_graph)
 
-    highest_temp = max(historical_values_temp)
+    highest_temp = max(historical_values_temp, default=-1000)
 
     lowest_temp = min(historical_values_temp[1:], default=1000)
 
