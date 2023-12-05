@@ -116,14 +116,14 @@ def update_real_time_graph(_):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
 
-    highest_temp = max(historical_values_temp, default=-1000)
+    highest_temp = max(historical_values_temp[1:], default=-1000)
 
     lowest_temp = min(historical_values_temp[1:], default=1000)
 
     #print (lowest_temp)
 
     historical_values_temp_from1 = historical_values_temp[1:]
-    
+
     """
     x_values.append(x_counter)
     x_counter += 1
