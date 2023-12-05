@@ -7,6 +7,7 @@ import dash_core_components
 import pandas as pd
 import paho.mqtt.client as mqtt
 import dash_bootstrap_components as dbc
+from datetime import datetime
 
 present_hum_graph = 0
 present_temp_graph = 0
@@ -86,7 +87,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*6000, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*600, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -97,6 +98,8 @@ app.layout = dbc.Container(
     )
 )
 
+
+time = []
 
 @app.callback(
     Output('real-time-graph', 'figure'),
@@ -110,6 +113,9 @@ def update_real_time_graph(_):
     historical_values_temp.append(present_temp_graph)
     historical_values_hum.append(present_hum_graph)
 
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+
     highest_temp = max(historical_values_temp, default=-1000)
 
     lowest_temp = min(historical_values_temp[1:], default=1000)
@@ -117,14 +123,19 @@ def update_real_time_graph(_):
     #print (lowest_temp)
 
     historical_values_temp_from1 = historical_values_temp[1:]
-
+    
+    """
     x_values.append(x_counter)
     x_counter += 1
 
     x_values_from1 = x_values[1:]
+    """
+
+    time.append(current_time)
+    time_val = time[1:]
 
     data = {
-        'x': x_values_from1,
+        'x': time_val,
         'present-temp': historical_values_temp_from1,
         #'present-hum': historical_values_hum,
     }
