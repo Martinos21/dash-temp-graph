@@ -87,7 +87,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*600, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*60, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -108,15 +108,20 @@ time = []
 )
 def update_real_time_graph(_):
     
+    print("update zacal")
+
     global historical_values_temp, historical_values_hum, x_values, x_counter, highest_temp, lowest_temp
 
     historical_values_temp.append(present_temp_graph)
     historical_values_hum.append(present_hum_graph)
 
+    
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-
-    highest_temp = max(historical_values_temp[1:], default=-1000)
+    print (current_time)
+    
+    
+    highest_temp = max(historical_values_temp)
 
     lowest_temp = min(historical_values_temp[1:], default=1000)
 
@@ -124,18 +129,19 @@ def update_real_time_graph(_):
 
     historical_values_temp_from1 = historical_values_temp[1:]
 
-    """
+    
     x_values.append(x_counter)
     x_counter += 1
 
     x_values_from1 = x_values[1:]
+    
     """
-
     time.append(current_time)
     time_val = time[1:]
+    """
 
     data = {
-        'x': time_val,
+        'x': x_values_from1,
         'present-temp': historical_values_temp_from1,
         #'present-hum': historical_values_hum,
     }
@@ -161,6 +167,8 @@ def update_real_time_graph(_):
     )
 
     figure = go.Figure(data=traces, layout=layout)
+
+    print("update skoncil")
 
     return figure
 
@@ -189,4 +197,4 @@ def update_cards(_):
 
 if __name__ == '__main__':
     #app.run_server(debug=True)
-    app.run_server(host='0.0.0.0', debug=False, port=8055) #pro sdileni stranky v siti (testovano na windows)
+    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
