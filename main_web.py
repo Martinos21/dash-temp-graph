@@ -19,11 +19,13 @@ highest_temp = None
 lowest_temp = None
 
 update = 0
+current_time = 0
 
 historical_values_temp = []
 historical_values_hum = []
 array_without_first = []
 x_values = []
+time = []
 x_counter = 0
 
 #####################################################################
@@ -40,12 +42,24 @@ def on_message(client, userdata, msg):
 
     global present_temp_graph
     global present_hum_graph
+    global current_time
+    global highest_temp
+    global lowest_temp
+    global time
+
 
     msg.payload = msg.payload.decode("utf-8")
 
     if msg.topic == "home-outdoortemp-analysis":
         present_temp = msg.payload
         present_temp_graph = float(present_temp)
+        historical_values_temp.append(present_temp_graph)
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        time.append(current_time)
+        highest_temp = max(historical_values_temp)
+
+        lowest_temp = min(historical_values_temp)
 
 
 
@@ -99,8 +113,6 @@ app.layout = dbc.Container(
 )
 
 
-time = []
-
 @app.callback(
     Output('real-time-graph', 'figure'),
     Input('update', 'n_intervals')
@@ -111,52 +123,9 @@ def update_real_time_graph(_):
     print("update zacal")
 
     global historical_values_temp, historical_values_hum, x_values, x_counter, highest_temp, lowest_temp
-
-    historical_values_temp.append(present_temp_graph)
-    historical_values_hum.append(present_hum_graph)
-
     
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    print (current_time)
-    
-    
-    highest_temp = max(historical_values_temp)
 
-    lowest_temp = min(historical_values_temp[1:], default=1000)
-
-    #print (lowest_temp)
-
-    historical_values_temp_from1 = historical_values_temp[1:]
-
-    
-    x_values.append(x_counter)
-    x_counter += 1
-
-    x_values_from1 = x_values[1:]
-    
-    """
-    time.append(current_time)
-    time_val = time[1:]
-    """
-
-    data = {
-        'x': x_values_from1,
-        'present-temp': historical_values_temp_from1,
-        #'present-hum': historical_values_hum,
-    }
-
-    df = pd.DataFrame.from_dict(data)
-    
-    traces = []
-    for column in df.columns[1:]:
-        trace = go.Scatter(
-            x=df['x'],
-            y = df[column],
-            mode = 'lines+markers',
-            name = column
-        )
-        traces.append(trace)
+    data = [go.Scatter(x=time, y=historical_values_temp, mode="lines+markers")]
 
 
     layout = go.Layout(
@@ -166,7 +135,7 @@ def update_real_time_graph(_):
         uirevision=0
     )
 
-    figure = go.Figure(data=traces, layout=layout)
+    figure = go.Figure(data=data, layout=layout)
 
     print("update skoncil")
 
@@ -191,9 +160,6 @@ def update_cards(_):
 def update_cards(_):
     
     return (str(lowest_temp)+ "C")
-
-
-
 
 if __name__ == '__main__':
     #app.run_server(debug=True)
