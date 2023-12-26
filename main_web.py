@@ -8,6 +8,7 @@ import pandas as pd
 import paho.mqtt.client as mqtt
 import dash_bootstrap_components as dbc
 from datetime import datetime
+from collections import deque
 
 present_hum_graph = 0
 present_temp_graph = 0
@@ -28,6 +29,24 @@ x_values = []
 time = []
 x_counter = 0
 
+
+def create_limited_queue(max_size):
+    return deque(maxlen=max_size)
+"""
+def append_random_value(queue):
+    new_value = random.randint(1, 100)  # Adjust the range as needed
+    queue.append(new_value)
+
+def display_queue(queue):
+    print("Current Queue:", list(queue))
+"""
+max_size = 50
+my_queue = create_limited_queue(max_size)
+
+myq_temp = deque(maxlen=max_size)
+myq_time = deque(maxlen=max_size)
+
+
 #####################################################################
 mqttc = mqtt.Client()
 mqttc.connect("192.168.88.105", 1884, 60)
@@ -36,6 +55,7 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
     mqttc.subscribe("home-outdoortemp-analysis")
+    mqttc.subscribe("test1892")
 
 
 def on_message(client, userdata, msg):
@@ -53,14 +73,16 @@ def on_message(client, userdata, msg):
     if msg.topic == "home-outdoortemp-analysis":
         present_temp = msg.payload
         present_temp_graph = float(present_temp)
+        
         historical_values_temp.append(present_temp_graph)
+        myq_temp.append(present_temp_graph)
+
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
-        time.append(current_time)
+        myq_time.append(current_time)
+
         highest_temp = max(historical_values_temp)
-
         lowest_temp = min(historical_values_temp)
-
 
 
 mqttc.on_connect = on_connect
@@ -101,7 +123,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*60, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*10, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -119,13 +141,10 @@ app.layout = dbc.Container(
     #Input('input', 'value')
 )
 def update_real_time_graph(_):
-    
-    print("update zacal")
 
     global historical_values_temp, historical_values_hum, x_values, x_counter, highest_temp, lowest_temp
     
-
-    data = [go.Scatter(x=time, y=historical_values_temp, mode="lines+markers")]
+    data = [go.Scatter(x=list(myq_time), y=list(myq_temp), mode="lines+markers")]
 
 
     layout = go.Layout(
@@ -137,7 +156,6 @@ def update_real_time_graph(_):
 
     figure = go.Figure(data=data, layout=layout)
 
-    print("update skoncil")
 
     return figure
 
