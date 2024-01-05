@@ -211,5 +211,5 @@ def update_cards(_):
     return min_value
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
-    #app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
+    #app.run_server(debug=True)
+    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
