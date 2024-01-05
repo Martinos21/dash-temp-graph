@@ -9,43 +9,31 @@ import paho.mqtt.client as mqtt
 import dash_bootstrap_components as dbc
 from datetime import datetime
 from collections import deque
+from influxdb import InfluxDBClient
 
 present_hum_graph = 0
 present_temp_graph = 0
 
-presenttemp = []
-presenthum = []
-
 highest_temp = None
 lowest_temp = None
 
-update = 0
 current_time = 0
 
-historical_values_temp = []
-historical_values_hum = []
-array_without_first = []
-x_values = []
 time = []
-x_counter = 0
 
 
-def create_limited_queue(max_size):
-    return deque(maxlen=max_size)
-"""
-def append_random_value(queue):
-    new_value = random.randint(1, 100)  # Adjust the range as needed
-    queue.append(new_value)
-
-def display_queue(queue):
-    print("Current Queue:", list(queue))
-"""
 max_size = 50
-my_queue = create_limited_queue(max_size)
 
 myq_temp = deque(maxlen=max_size)
 myq_time = deque(maxlen=max_size)
 
+client = InfluxDBClient(host="192.168.88.184", port = 8086, username="admin", password="admin", database="homeassistant")
+
+def append_value(myq_temp, myq_time):
+    myq_temp.append(present_temp_graph)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    myq_time.append(current_time)
 
 #####################################################################
 mqttc = mqtt.Client()
@@ -74,15 +62,8 @@ def on_message(client, userdata, msg):
         present_temp = msg.payload
         present_temp_graph = float(present_temp)
         
-        historical_values_temp.append(present_temp_graph)
-        myq_temp.append(present_temp_graph)
+        append_value(myq_temp,myq_time)
 
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        myq_time.append(current_time)
-
-        highest_temp = max(historical_values_temp)
-        lowest_temp = min(historical_values_temp)
 
 
 mqttc.on_connect = on_connect
@@ -98,7 +79,21 @@ highest_temp_card = dbc.Card(
             html.Td(id= "highest-temp"),
 
         ],
-        style={"width":"196px", "height":"105px"}
+        style={"width":"190px", "height":"105px"}
+        
+    )
+    
+)
+
+avg_temp_card = dbc.Card(
+    dbc.CardBody(
+        
+        [
+            html.H4("AVG-temp"),
+            html.Td(id= "avg-temp"),
+
+        ],
+        style={"width":"190px", "height":"105px"}
         
     )
     
@@ -112,7 +107,7 @@ lowest_temp_card = dbc.Card(
             html.Td(id= "lowest-temp"),
 
         ],
-        style={"width":"196px", "height":"105px"}
+        style={"width":"190px", "height":"105px"}
         
     )
     
@@ -128,7 +123,7 @@ app.layout = dbc.Container(
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
             html.Hr(),
-            dbc.Row([dbc.Col(highest_temp_card), dbc.Col(lowest_temp_card)])
+            dbc.Row([dbc.Col(highest_temp_card),dbc.Col(avg_temp_card), dbc.Col(lowest_temp_card)])
 
         ]
     )
@@ -141,8 +136,6 @@ app.layout = dbc.Container(
     #Input('input', 'value')
 )
 def update_real_time_graph(_):
-
-    global historical_values_temp, historical_values_hum, x_values, x_counter, highest_temp, lowest_temp
     
     data = [go.Scatter(x=list(myq_time), y=list(myq_temp), mode="lines+markers")]
 
@@ -167,7 +160,36 @@ def update_real_time_graph(_):
 
 def update_cards(_):
 
-    return (str(highest_temp)+ "C")
+    query = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
+
+    result = client.query(query)
+    points = result.get_points()
+
+    for point in points:
+        max_value = format(point['max_value'], '.2f') + " ℃"
+        
+
+    return max_value
+
+@app.callback(
+    Output('avg-temp', 'children'),
+    Input('update', 'n_intervals')
+    #Input('input', 'value')
+)
+
+def update_cards(_):
+    
+    query = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
+
+    result = client.query(query)
+    points = result.get_points()
+
+    for point in points:
+        mean_value = format(point['mean_value'], '.2f') + " ℃"
+        
+
+    return mean_value
+
 
 @app.callback(
     Output('lowest-temp', 'children'),
@@ -177,8 +199,17 @@ def update_cards(_):
 
 def update_cards(_):
     
-    return (str(lowest_temp)+ "C")
+    query = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
+
+    result = client.query(query)
+    points = result.get_points()
+
+    for point in points:
+        min_value = format(point['min_value'], '.2f') + " ℃"
+        
+
+    return min_value
 
 if __name__ == '__main__':
-    #app.run_server(debug=True)
-    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
+    app.run_server(debug=True)
+    #app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
