@@ -11,17 +11,6 @@ from datetime import datetime
 from collections import deque
 from influxdb import InfluxDBClient
 
-present_hum_graph = 0
-present_temp_graph = 0
-
-highest_temp = None
-lowest_temp = None
-
-current_time = 0
-
-time = []
-
-
 max_size = 50
 
 myq_temp = deque(maxlen=max_size)
@@ -39,6 +28,7 @@ def database_query():
 # Combined query to select mean, min, and max values
     query = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 
+    
     result = client.query(query)
     points = result.get_points()
 
@@ -55,7 +45,6 @@ def append_value(myq_temp, myq_time):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     myq_time.append(current_time)
-
 
 highest_temp_card = dbc.Card(
     dbc.CardBody(
@@ -104,7 +93,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*60, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*600, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
