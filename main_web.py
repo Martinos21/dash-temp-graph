@@ -10,11 +10,48 @@ import dash_bootstrap_components as dbc
 from datetime import datetime
 from collections import deque
 from influxdb import InfluxDBClient
+import time
 
 max_size = 50
 
 myq_temp = deque(maxlen=max_size)
 myq_time = deque(maxlen=max_size)
+
+def read_last_50_values():
+    host = "192.168.88.184"
+    port = 8086
+    user = "admin"
+    password = "admin"
+    database = "homeassistant"
+
+    client = InfluxDBClient(host, port, user, password, database)
+
+    query = f'SELECT * FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\') ORDER BY time DESC LIMIT 50'
+
+    result = client.query(query)
+    
+    values_list = []
+    timestamps_list = []
+
+    for point in result.get_points():
+        
+        value = point['value']
+        timestamp = point['time']
+
+        timestamp_datetime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        result = format(timestamp_datetime, "%H:%M:%S")
+
+        values_list.append(value)
+        timestamps_list.append(result)
+
+        reversed_values_list = list(reversed(values_list))
+        reversed_timestamps_list = list(reversed(timestamps_list))
+
+
+    client.close()
+
+    return reversed_values_list, reversed_timestamps_list
 
 def database_query():
     host = "192.168.88.184"
@@ -40,11 +77,15 @@ def database_query():
         #print(f"Mean Value: {database_query.mean_value}, Min Value: {min_value}, Max Value: {max_value}")
 
     client.close()
+
+"""
 def append_value(myq_temp, myq_time):
     myq_temp.append(database_query.last_value)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     myq_time.append(current_time)
+"""
+
 
 highest_temp_card = dbc.Card(
     dbc.CardBody(
@@ -93,7 +134,7 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.DARKLY])
 app.layout = dbc.Container(
     html.Div(
         children=[
-            dcc.Interval(id='update', interval=1000*600, n_intervals=0),
+            dcc.Interval(id='update', interval=1000*60, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph'),
@@ -111,11 +152,10 @@ app.layout = dbc.Container(
     #Input('input', 'value')
 )
 def update_real_time_graph(_):
-    
-    database_query()
-    append_value(myq_temp,myq_time)
 
-    data = [go.Scatter(x=list(myq_time), y=list(myq_temp), mode="lines+markers")]
+    values, timestamps = read_last_50_values()
+
+    data = [go.Scatter(x=list(timestamps), y=list(values), mode="lines+markers")]
 
 
     layout = go.Layout(
@@ -170,4 +210,4 @@ def update_cards(_):
 
 if __name__ == '__main__':
     #app.run_server(debug=True)
-    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)
+    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)s
