@@ -17,6 +17,8 @@ max_size = 50
 myq_temp = deque(maxlen=max_size)
 myq_time = deque(maxlen=max_size)
 
+query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
+query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
 def read_last_50_values():
     host = "192.168.88.184"
     port = 8086
@@ -53,7 +55,7 @@ def read_last_50_values():
 
     return reversed_values_list, reversed_timestamps_list
 
-def database_query():
+def database_query(query):
     host = "192.168.88.184"
     port = 8086
     user = "admin"
@@ -62,30 +64,16 @@ def database_query():
 
     client = InfluxDBClient(host, port, user, password, database)
 
-# Combined query to select mean, min, and max values
-    query = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
-
-    
     result = client.query(query)
     points = result.get_points()
 
     for point in points:
+        database_query.last_value = point['last_value']
         database_query.mean_value = point['mean_value']
         database_query.min_value = point['min_value']
         database_query.max_value = point['max_value']
-        database_query.last_value = point['last_value']
-        #print(f"Mean Value: {database_query.mean_value}, Min Value: {min_value}, Max Value: {max_value}")
-
+        
     client.close()
-
-"""
-def append_value(myq_temp, myq_time):
-    myq_temp.append(database_query.last_value)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    myq_time.append(current_time)
-"""
-
 
 highest_temp_card = dbc.Card(
     dbc.CardBody(
@@ -137,14 +125,35 @@ app.layout = dbc.Container(
             dcc.Interval(id='update', interval=1000*60, n_intervals=0),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
+            html.Div(id='actual-temp', style={'text-align':'center'}),
+            html.Div(id='actual-co2', style={'text-align':'center'}),
             dcc.Graph(id='real-time-graph'),
             html.Hr(),
-            dbc.Row([dbc.Col(highest_temp_card),dbc.Col(avg_temp_card), dbc.Col(lowest_temp_card)])
-
+            dbc.Row([dbc.Col(highest_temp_card),dbc.Col(avg_temp_card), dbc.Col(lowest_temp_card)]),
+            
         ]
     )
 )
 
+@app.callback(
+        Output('actual-co2','children'),
+        Input('update', 'n_intervals')
+)
+
+def update_cards(_):
+    database_query(query_co2)
+
+    return "Znecisteni je: " + str(database_query.last_value) + "ppm"
+
+@app.callback(
+        Output('actual-temp','children'),
+        Input('update', 'n_intervals')
+)
+
+def update_cards(_):
+    database_query(query_temp)
+
+    return "Teplota je: " + str(database_query.last_value) + "°C" 
 
 @app.callback(
     Output('real-time-graph', 'figure'),
@@ -177,9 +186,9 @@ def update_real_time_graph(_):
 )
 
 def update_cards(_):
-    database_query()
+    database_query(query_temp)
 
-    return database_query.max_value
+    return database_query.max_value 
     
 
 @app.callback(
@@ -189,9 +198,9 @@ def update_cards(_):
 )
 
 def update_cards(_):
-    database_query()
+    database_query(query_temp)
 
-    return format(database_query.mean_value, ".2f")
+    return format(database_query.mean_value, ".2f") + "°C"
     
 
 
@@ -202,9 +211,9 @@ def update_cards(_):
 )
 
 def update_cards(_):
-    database_query()
+    database_query(query_temp)
 
-    return database_query.min_value
+    return database_query.min_value 
     
     
 
