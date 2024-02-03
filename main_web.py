@@ -19,6 +19,8 @@ myq_time = deque(maxlen=max_size)
 
 query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
+
+
 def read_last_50_values():
     host = "192.168.88.184"
     port = 8086
@@ -127,7 +129,9 @@ app.layout = dbc.Container(
             html.Hr(),
             html.Div(id='actual-temp', style={'text-align':'center'}),
             html.Div(id='actual-co2', style={'text-align':'center'}),
-            dcc.Graph(id='real-time-graph'),
+            dbc.Button('save csv', id='save-csv',n_clicks=0,className="d-grid gap-2 col-1 mx-auto", style={'align-items':'center'}),
+            html.Hr(),
+            dcc.Graph(id='real-time-graph', style={}),
             html.Hr(),
             dbc.Row([dbc.Col(highest_temp_card),dbc.Col(avg_temp_card), dbc.Col(lowest_temp_card)]),
             
@@ -218,5 +222,5 @@ def update_cards(_):
     
 
 if __name__ == '__main__':
-    #app.run_server(debug=True)
-    app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)s
+    app.run_server(debug=True)
+    #app.run_server(host='0.0.0.0', debug=False, port=8059) #pro sdileni stranky v siti (testovano na windows)s
