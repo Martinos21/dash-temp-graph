@@ -11,6 +11,11 @@ from datetime import datetime
 from collections import deque
 from influxdb import InfluxDBClient
 import time
+import os
+import csv
+import datetime as dt
+from github import Auth
+from github import Github
 
 max_size = 50
 
@@ -19,6 +24,54 @@ myq_time = deque(maxlen=max_size)
 
 query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
+
+def save_csv(vals, times):
+    #vals, times = read_last_50_values
+    times_list = list(times)
+    vals_list = list(vals)
+
+    data = list(zip(times_list, vals))
+
+    output_directory = r'C:\Users\Martin\Documents\GitHub\dash-temp-graph'
+    csv_file_name = 'output_data.csv'
+
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    csv_file_path = os.path.join(output_directory, csv_file_name)
+
+    with open(csv_file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+    
+        writer.writerow(['Column1', 'Column2'])
+    
+        writer.writerows(data)
+    print(f"Data has been successfully written to {csv_file_path}.")
+
+    username = "Martehn03"
+    token = "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"
+    repo_name = "dash-temp-graph"
+    file_path = csv_file_path
+    commit_message = "Publish file via script"
+
+    g = Github(username, token)
+
+    repo = g.get_user().get_repo(repo_name)
+
+    with open(file_path, 'rb') as file:
+        file_content = file.read()
+
+    file_name = file_path.split("/")[-1]
+
+    try:
+        contents = repo.get_contents(file_name)
+
+        repo.update_file(contents.path, commit_message, file_content, contents.sha)
+        print(f"File '{file_name}' updated successfully.")
+    except Exception as e:
+        
+        repo.create_file(file_name, commit_message, file_content)
+        print(f"File '{file_name}' created successfully.")
 
 
 def read_last_50_values():
@@ -134,10 +187,22 @@ app.layout = dbc.Container(
             dcc.Graph(id='real-time-graph', style={}),
             html.Hr(),
             dbc.Row([dbc.Col(highest_temp_card),dbc.Col(avg_temp_card), dbc.Col(lowest_temp_card)]),
+            html.Div(id="output", hidden=True),
             
         ]
     )
 )
+
+@app.callback(
+    Output('output','children'),
+    Input('save-csv','n_clicks')
+)
+
+def save_csv_btn(n_clicks):
+    vals, times = read_last_50_values()
+    if n_clicks % 2 == 0 and n_clicks != 0:
+        save_csv(vals,times)
+    return 0
 
 @app.callback(
         Output('actual-co2','children'),
