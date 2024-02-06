@@ -52,7 +52,7 @@ def save_csv(vals, times):
         writer.writerows(data)
     
     username = "Martehn03"
-    token = "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"
+    token = "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"
     repo_name = 'dash-temp-graph'
     commit_message = "Publish file via script"
     file_path = csv_file_path
