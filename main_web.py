@@ -25,6 +25,8 @@ myq_time = deque(maxlen=max_size)
 query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
 
+
+
 def save_csv(vals, times):
     #vals, times = read_last_50_values
     times_list = list(times)
@@ -32,7 +34,9 @@ def save_csv(vals, times):
 
     data = list(zip(times_list, vals))
 
-    output_directory = r'C:\Users\Martin\Documents\GitHub\dash-temp-graph'
+    project_directory = os.getcwd()
+
+    output_directory = os.path.join(project_directory, 'output')
     csv_file_name = 'output_data.csv'
 
     if not os.path.exists(output_directory):
@@ -46,13 +50,12 @@ def save_csv(vals, times):
         writer.writerow(['Column1', 'Column2'])
     
         writer.writerows(data)
-    print(f"Data has been successfully written to {csv_file_path}.")
-
+    
     username = "Martehn03"
-    token = "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"
-    repo_name = "dash-temp-graph"
-    file_path = csv_file_path
+    token = "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"
+    repo_name = 'dash-temp-graph'
     commit_message = "Publish file via script"
+    file_path = csv_file_path
 
     g = Github(username, token)
 
@@ -67,11 +70,13 @@ def save_csv(vals, times):
         contents = repo.get_contents(file_name)
 
         repo.update_file(contents.path, commit_message, file_content, contents.sha)
-        print(f"File '{file_name}' updated successfully.")
+        print("File updated successfully.")
+        
     except Exception as e:
         
         repo.create_file(file_name, commit_message, file_content)
-        print(f"File '{file_name}' created successfully.")
+        print(f"Created new {file_name} in the repository.")
+        
 
 
 def read_last_50_values():
