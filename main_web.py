@@ -135,6 +135,26 @@ def database_query(query):
         
     client.close()
 
+mqttc = mqtt.Client()
+mqttc.connect("192.168.88.105", 1884, 60 )
+
+def on_connect(client, userdata, flags, rc):
+    mqttc.subscribe("home-co2")
+
+def on_message (client, userdata, msg):
+
+    global home_co2
+
+    msg.payload = msg.payload.decode("utf-8")
+
+    if msg.topic == "home-co2":
+        home_co2 = msg.payload
+
+mqttc.on_connect = on_connect
+mqttc.on_message = on_message
+
+mqttc.loop_start()
+
 highest_temp_card = dbc.Card(
     dbc.CardBody(
         
@@ -187,7 +207,7 @@ app.layout = dbc.Container(
             html.Hr(),
             html.Div(id='actual-temp', style={'text-align':'center'}),
             html.Div(id='actual-co2', style={'text-align':'center'}),
-            dbc.Button('save csv', id='save-csv',n_clicks=0,className="d-grid gap-2 col-1 mx-auto", style={'align-items':'center'}),
+            #dbc.Button('save csv', id='save-csv',n_clicks=0,className="d-grid gap-2 col-1 mx-auto", style={'align-items':'center'}),
             html.Hr(),
             dcc.Graph(id='real-time-graph', style={}),
             html.Hr(),
