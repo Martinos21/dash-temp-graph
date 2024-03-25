@@ -17,6 +17,7 @@ import datetime as dt
 from github import Auth
 from github import Github
 
+
 max_size = 50
 
 myq_temp = deque(maxlen=max_size)
