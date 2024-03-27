@@ -17,11 +17,29 @@ from picamera2.outputs import FileOutput
 PAGE = """\
 <html>
 <head>
-<title>picamera2 MJPEG streaming demo</title>
+    <title>picamera2 MJPEG streaming demo</title>
+    <style>
+        body {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* Light text */
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: #00ff00; /* Green heading */
+            text-align: center;
+        }
+        img {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #00ff00; /* Green border */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Green shadow */
+        }
+    </style>
 </head>
 <body>
-<h1>Picamera2 MJPEG Streaming Demo</h1>
-<img src="stream.mjpg" width="640" height="480" />
+    <h1>Picamera2 MJPEG Streaming Demo</h1>
+    <img src="stream.mjpg" width="1280" height="720" />
 </body>
 </html>
 """
@@ -84,7 +102,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 
 picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
+picam2.configure(picam2.create_video_configuration(main={"size": (1280, 720)}))
 output = StreamingOutput()
 picam2.start_recording(JpegEncoder(), FileOutput(output))
 
