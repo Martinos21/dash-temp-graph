@@ -209,7 +209,7 @@ app.layout = dbc.Container(
     html.Div(
         children=[
             dcc.Interval(id='update', interval=1000*60, n_intervals=0),
-            dbc.Row([dbc.Col(str(cpu.temperature)+"C"), dbc.Col(str(ram)+"%"), dbc.Col(str(disk.usage)+"%")]),
+            dbc.Row([dbc.Col("Teplota cpu: "+str(cpu.temperature)+" C"), dbc.Col("RAM: "+str(ram)+" %"), dbc.Col("Disk usage: "+str(disk.usage)+" %")]),
             html.Hr(),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
