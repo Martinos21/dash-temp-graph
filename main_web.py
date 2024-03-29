@@ -16,6 +16,8 @@ import csv
 import datetime as dt
 from github import Auth
 from github import Github
+from gpiozero import CPUTemperature, DiskUsage
+import psutil
 
 
 max_size = 50
@@ -26,6 +28,9 @@ myq_time = deque(maxlen=max_size)
 query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
 
+cpu = CPUTemperature
+ram = psutil.virtual_memory().percent
+disk = DiskUsage
 
 
 def save_csv(vals, times):
@@ -204,6 +209,8 @@ app.layout = dbc.Container(
     html.Div(
         children=[
             dcc.Interval(id='update', interval=1000*60, n_intervals=0),
+            dbc.Row([dbc.Col(str(cpu.temperature)+"C"), dbc.Col(str(ram)+"%"), dbc.Col(str(disk.usage)+"%")]),
+            html.Hr(),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
             html.Div(id='actual-temp', style={'text-align':'center'}),
