@@ -28,9 +28,9 @@ myq_time = deque(maxlen=max_size)
 query_temp = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAX("value") AS max_value, LAST("value") AS last_value FROM "°C" WHERE ("entity_id"=\'outdoor_temperature\')'
 query_co2 = 'SELECT MEAN("value") AS mean_value, MIN("value") AS min_value, MAx("value") AS max_value, LAST("value") AS last_value FROM "state" WHERE ("entity_id" =\'co2\')'
 
-cpu = CPUTemperature
+cpu = CPUTemperature()
 ram = psutil.virtual_memory().percent
-disk = DiskUsage
+disk = DiskUsage()
 
 
 def save_csv(vals, times):
