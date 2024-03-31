@@ -209,7 +209,7 @@ app.layout = dbc.Container(
     html.Div(
         children=[
             dcc.Interval(id='update', interval=1000*60, n_intervals=0),
-            dbc.Row([dbc.Col("Teplota cpu: "+str(cpu.temperature)+" C"), dbc.Col("RAM: "+str(ram)+" %"), dbc.Col("Disk usage: "+str(round(disk.usage,2))+" %")]),
+            dbc.Row([dbc.Col(id="cpu-temp"), dbc.Col(id="ram-usage"), dbc.Col(id="disk-usage")]),
             html.Hr(),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
@@ -225,6 +225,30 @@ app.layout = dbc.Container(
         ]
     )
 )
+
+@app.callback(
+    Output('cpu-temp','children'),
+    Input('update','n_intervals')
+)
+
+def span_update():
+    return "Teplota cpu: "+str(cpu.temperature)+" C"
+
+@app.callback(
+    Output('ram-usage','children'),
+    Input('update','n_intervals') 
+)
+
+def span_update():
+    return "RAM: "+str(ram)+" %"
+
+@app.callback(
+    Output('disk-usage','children'),
+    Input('update','n_intervals')
+)
+
+def span_update():
+    return "Disk usage: "+str(round(disk.usage,2))+" %"
 
 @app.callback(
     Output('output','children'),
