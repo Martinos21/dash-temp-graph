@@ -233,7 +233,7 @@ app.layout = dbc.Container(
 
 def span_update():
     cpu = CPUTemperature()
-    return "Teplota cpu: "+str(cpu.temperature)+" C"
+    return f"Teplota cpu: "+str(cpu.temperature)+" C"
 
 @app.callback(
     Output('ram-usage','children'),
@@ -242,7 +242,7 @@ def span_update():
 
 def span_update():
     ram = psutil.virtual_memory().percent
-    return "RAM: "+str(ram)+" %"
+    return f"RAM: "+str(ram)+" %"
 
 @app.callback(
     Output('disk-usage','children'),
@@ -251,7 +251,7 @@ def span_update():
 
 def span_update():
     disk = DiskUsage()
-    return "Disk usage: "+str(round(disk.usage,2))+" %"
+    return f"Disk usage: "+str(round(disk.usage,2))+" %"
 
 @app.callback(
     Output('output','children'),
