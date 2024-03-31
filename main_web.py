@@ -209,7 +209,7 @@ app.layout = dbc.Container(
     html.Div(
         children=[
             dcc.Interval(id='update', interval=1000*60, n_intervals=0),
-            dbc.Row([dbc.Col(id="cpu-temp"), dbc.Col(id="ram-usage"), dbc.Col(id="disk-usage")]),
+            dbc.Row([dbc.Col(id="cpu-temp"), dbc.Col(id="ram-usage"), dbc.Col("disk-usage")]),
             html.Hr(),
             html.H1("Mereni teploty", style={'text-align':'center'}),
             html.Hr(),
@@ -232,6 +232,7 @@ app.layout = dbc.Container(
 )
 
 def span_update():
+    cpu = CPUTemperature()
     return "Teplota cpu: "+str(cpu.temperature)+" C"
 
 @app.callback(
@@ -240,6 +241,7 @@ def span_update():
 )
 
 def span_update():
+    ram = psutil.virtual_memory().percent
     return "RAM: "+str(ram)+" %"
 
 @app.callback(
@@ -248,6 +250,7 @@ def span_update():
 )
 
 def span_update():
+    disk = DiskUsage()
     return "Disk usage: "+str(round(disk.usage,2))+" %"
 
 @app.callback(
